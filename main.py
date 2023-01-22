@@ -37,7 +37,6 @@ def create_tables(cur, table_clients, table_emails, table_phones):
         phone_number VARCHAR(15)  UNIQUE  NOT NULL
     );
     """)
-    # conn.commit()
 
 
 def new_client(cur, first_name, last_name, table_clients='clients'):
@@ -46,7 +45,6 @@ def new_client(cur, first_name, last_name, table_clients='clients'):
     VALUES  (%s, %s);
     """, (first_name, last_name)
     )
-    # return cur.fetchone()
 
 
 def find_id(cur, first_name, last_name, table_clients='clients'):
@@ -161,6 +159,7 @@ def find_client(cur, first_name=None, last_name=None, email=None, phone_number=N
             OR ea.email = %s
             OR pb.phone_number = %s
         """ + group_by, (first_name, last_name, email, str(phone_number)))
+    print(cur.fetchall())
     return cur.fetchall()
 
 
@@ -173,9 +172,9 @@ table_emails = 'email_adresses'
 table_phones = 'phone_book'
 
 with conn.cursor() as cur:
-    # create_tables(cur=cur, table_clients=table_clients, table_emails=table_emails, table_phones=table_phones)
-    # conn.commit()
-    #
+    create_tables(cur=cur, table_clients=table_clients, table_emails=table_emails, table_phones=table_phones)
+    conn.commit()
+
     users = (('Will', 'Smith'), ('Brad', 'Pitt'), ('Angelina', 'Jolie'), ('Mark', 'Wahlberg'),
              ('Kristian', 'Bale'), ('Ben', 'Affleck'), ('Gal', 'Gadot'),
              ('Anne', 'Hathaway'), ('Emma', 'Watson'), ('Robert', 'Downey Jr.'))
@@ -187,20 +186,20 @@ with conn.cursor() as cur:
     e_mails = ((1, 'Will@gmail.com'), (2, 'Brad@gmail.com'), (3, 'Angel@gmail.com'), (4, 'Mark@gmail.com'),
                (5, 'Kristian@gmail.com'), (6, 'Ben@gmail.com'), (7, 'GalG@gmail.com'),
                (8, 'Ann@gmail.com'), (9, 'Emma@gmail.com'), (10, 'Robert@gmail.com'))
-    #
-    # for user in users:
-    #     new_client(cur=cur, first_name=user[0], last_name=user[1], table_clients=table_clients)
-    # for number in phone_numbers:
-    #     add_phone(cur, phone_number=number[1], client_id=number[0],
-    #               table_clients=table_clients, table_phones=table_phones)
-    #
-    # add_phone(cur, phone_number='000000000', first_name='Robert', last_name='Downey Jr.',
-    #           table_clients=table_clients, table_phones=table_phones)
-    #
-    # for em in e_mails:
-    #     add_email(cur, em[1], client_id=em[0], table_clients=table_clients, table_emails=table_emails)
-    #
-    # conn.commit()
+
+    for user in users:
+        new_client(cur=cur, first_name=user[0], last_name=user[1], table_clients=table_clients)
+    for number in phone_numbers:
+        add_phone(cur, phone_number=number[1], client_id=number[0],
+                  table_clients=table_clients, table_phones=table_phones)
+
+    add_phone(cur, phone_number='000000000', first_name='Robert', last_name='Downey Jr.',
+              table_clients=table_clients, table_phones=table_phones)
+
+    for em in e_mails:
+        add_email(cur, em[1], client_id=em[0], table_clients=table_clients, table_emails=table_emails)
+
+    conn.commit()
     #
     # change_data(cur=cur, first_name='Will', last_name='Smith',
     #             changing_field='first_name', new_value='William')
@@ -222,18 +221,6 @@ with conn.cursor() as cur:
     # new_client(cur=cur, first_name='Emma', last_name='Stone', table_clients=table_clients)
     # conn.commit()
 
-    # search_emma = find_client(cur=cur, first_name='Emma')
-    # print(search_emma)
-
-    # search_brad = find_client(cur=cur, first_name='Brad')
-    # print(search_brad)
-    #
-    # for client in users:
-    #     search_mark = find_client(cur=cur, first_name=client[0])
-    #     print(search_mark)
-    #     search_mark = find_client(cur=cur, last_name=client[1])
-    #     print(search_mark)
-
     # for num in phone_numbers:
     #     search_phone = find_client(cur=cur, phone_number=num[1])
     #     print(search_phone)
@@ -242,21 +229,62 @@ with conn.cursor() as cur:
     #     search_email = find_client(cur=cur, email=em[1])
     #     print(search_email)
 
-    # commands = {
-    #     'ct': create_tables,
-    #     'ac': new_client,
-    #     'ap': add_phone,
-    #     'cd': change_data,
-    #     'dp': delete_phone,
-    #     'dc': delete_client,
-    #     'fc': find_client,
-    #     'e': 'exit'
-    # }
-    #
-    # while True:
-    #     com = input("""
-    #     Input one of several combination if symbols:
-    #
-    #     """)
+    commands = {
+        'ct': create_tables,
+        'ac': new_client,
+        'ap': add_phone,
+        'cd': change_data,
+        'dp': delete_phone,
+        'dc': delete_client,
+        'fc': find_client,
+        'e': 'exit'
+    }
+
+    while True:
+        com = input("""
+        Input one of several combination if symbols:
+        'ct' - A function that creates a database structure (tables)
+        'ac' - A function that allows you to add a new client
+        'ap' - A feature that allows you to add a phone for an existing client
+        'cd' - A function that allows you to change customer data
+        'dp' - A feature that allows you to delete a phone for an existing client
+        'dc' - A function that allows you to delete an existing client
+        'fc' - A function that allows you to find a client by his data (first name, last name, email or phone)
+        'e' - Escape from this program
+        """)
+        if com == 'e':
+            break
+        else:
+            if com == 'ct':
+                args = [cur, table_clients, table_emails, table_phones]
+            elif com == 'ac':
+                args = [cur, input('Input first_name: '), input('Input last_name: '), table_clients]
+            elif com == 'ap':
+                args = [cur, input('Input phone number: '), input('Input first name: '), input('Input last name: '),
+                        None, table_clients, table_phones]
+            elif com == 'cd':
+                args = [cur, input('Input first name: '), input('Input last name: '),
+                        input('Input changing_field (first_name/last_name/email/phone_number): '),
+                        input('Input new_value: '), input('Input old_value: ')]
+            elif com == 'dp':
+                args = [cur, input('Input first name: '), input('Input last name: '),
+                        input('Input number to delete: ')]
+            elif com == 'dc':
+                args = [cur, input('Input first name: '), input('Input last name: '),
+                        None, table_phones, table_emails, table_clients]
+            elif com == 'fc':
+                args = [cur, None, None, None, None,
+                        None, table_phones, table_emails, table_clients]
+                search_arg = input('Input searching argument (first_name/last_name/email/phone_number): ')
+                if search_arg == 'first_name':
+                    args[1] = input('Input first name: ')
+                elif search_arg == 'last_name':
+                    args[2] = input('Input last name: ')
+                elif search_arg == 'email':
+                    args[3] = input('Input email: ')
+                elif search_arg == 'phone_number':
+                    args[4] = input('Input phone number: ')
+            run = commands[com](*args)
+            conn.commit()
 
 conn.close()

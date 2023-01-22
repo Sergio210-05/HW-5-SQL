@@ -1,1 +1,1 @@
-{'login': 'postgres', 'password': 'Zxcv123Asdf'}
+{'login': 'postgres', 'password': ''}
